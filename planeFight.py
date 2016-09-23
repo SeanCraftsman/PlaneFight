@@ -1,48 +1,15 @@
 # -*- coding: utf8 -*-
 
-background_image_filename = 'img\\background.png'
-mouse_image_filename = 'img\\hero.png'
-bullet_image_filename = 'img\\bullet.png'
-enemy_image_filename = 'img\\enemy2.png'
-#指定图像文件名称
+
+
 SCREEN_SIZE = (380,680)
  
-import pygame #导入pygame库
-from sys import exit #向sys模块借一个exit函数用来退出程序
-from random import randint
+
 import os
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (500,20) # 控制窗口打开位置
+from ClassOfPlaneFight import *
+from init import *
 
-#定义一个Bullet类，封装子弹的数据和方法
-class Bullet(object):
-    def __init__(self):
-        self.x = 0
-        self.y = -100
-        self.speed = 600
-        self.image = pygame.image.load(bullet_image_filename).convert_alpha()
-
-    def move(self,passed_time_seconds):
-        if self.y < 0:
-            mouseX, mouseY = pygame.mouse.get_pos()
-            self.x = mouseX - self.image.get_width()/2
-            self.y = mouseY - self.image.get_width()/2
-        else:
-            self.y -= self.speed*passed_time_seconds
-
-class Enemy(object):#定义一个Enemy类，封装敌机的数据和方法
-    def restart(self):
-        self.x = randint(-30,400)
-        self.y = randint(-100, -50)
-        self.speed = randint(100,400)
-    def __init__(self):
-        self.restart()
-        self.image = pygame.image.load(enemy_image_filename).convert_alpha()
-
-    def move(self, passed_time_seconds):
-        if self.y < 650:
-            self.y += self.speed*passed_time_seconds
-        else:
-            self.restart()
 
 pygame.init() #初始化pygame,为使用硬件做准备
 screen = pygame.display.set_mode(SCREEN_SIZE, 0, 32)
@@ -54,8 +21,16 @@ mouse_cursor = pygame.image.load(mouse_image_filename).convert_alpha()
 #加载并转换图像
 
 clock = pygame.time.Clock()
-bullet = Bullet()
-enemy = Enemy()
+bullet = []
+for i in range(6):
+    bullet.append(Bullet())
+interval_bullet = 25 #发射子弹的帧数间隔
+index_bullet = 0 #初始化子弹坐标
+enemy = []
+for i in range(10):
+    enemy.append(Enemy())
+interval_enemy = 100 #敌机出现的间隔
+index_enemy = 0 #初始化敌机坐标
 
 while True:
 #游戏主循环
@@ -71,14 +46,30 @@ while True:
     #将背景图画上去
     x, y = pygame.mouse.get_pos()
     #获得鼠标位置
-    bullet.move(time_passed_seconds)
-    enemy.move(time_passed_seconds)
+    interval_bullet -= 1
+    if interval_bullet <= 0:
+        interval_bullet = 25
+        bullet[index_bullet].restart()#重置子弹
+        index_bullet = (index_bullet + 1) % 6 #循环递增
+        
+    for b in bullet:
+        if b.active:
+            b.move(time_passed_seconds)#移动子弹
+            screen.blit(b.image, (b.x, b.y))#显示子弹
+
+    interval_enemy -= 1
+    if interval_enemy <= 0:
+        interval_enemy = randint(30,100)
+        enemy[index_enemy].restart() #重置飞机
+        index_enemy = (index_enemy + 1) % 10 #循环递增
+    for e in enemy:
+        if e.active:
+            e.move(time_passed_seconds) #移动敌机
+            screen.blit(e.image, (e.x, e.y)) #显示敌机
 
     x-= mouse_cursor.get_width() / 2
     y-= mouse_cursor.get_height() / 2
     #计算光标的左上角位置
-    screen.blit(enemy.image, (enemy.x, enemy.y))
-    screen.blit(bullet.image, (bullet.x, bullet.y))
     screen.blit(mouse_cursor, (x, y))
     #把光标画上去
  
