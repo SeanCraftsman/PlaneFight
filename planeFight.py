@@ -24,7 +24,8 @@ bullet = pygame.image.load(bullet_image_filename).convert_alpha()
 #加载并转换图像
 
 bullet_x, bullet_y = 0, -100
-
+bullet_speed = 500
+clock = pygame.time.Clock()
 while True:
 #游戏主循环
  
@@ -33,22 +34,24 @@ while True:
             #接收到退出事件后退出程序
             pygame.quit()
             exit()
- 
+
     screen.blit(background, (0,0))
     #将背景图画上去
+    time_passed = clock.tick(100)
+    time_passed_seconds = time_passed/1000.0
     x, y = pygame.mouse.get_pos()
     #获得鼠标位置
     if bullet_y < -1 :
-    	bullet_x, bullet_y = x,y
+        bullet_x, bullet_y = x,y
     else:
-    	bullet_y -= 1
+        bullet_y -= bullet_speed * time_passed_seconds
+        #print time_passed_seconds
     x-= mouse_cursor.get_width() / 2
     y-= mouse_cursor.get_height() / 2
     #计算光标的左上角位置
     screen.blit(bullet, (bullet_x, bullet_y))
     screen.blit(mouse_cursor, (x, y))
     #把光标画上去
-    
  
     pygame.display.update()
     #刷新一下画面
